@@ -1,5 +1,6 @@
 <html>
 <head>
+    <title>vpws配置生成工具</title>
     <meta charset='UTF-8'>
     <link rel="stylesheet" type="text/css" href="css/semantic.min.css">
     <script src="js/jquery.min.js"></script>
@@ -490,7 +491,9 @@ openssl req -new -x509 -extensions v3_ca -days 36500 -key ca.key -out ca.crt -co
         <div class="ui message">
             <p>请将配置文件放置在家目录下的vpws-agent.conf文件中，或者在启动agent时指定配置文件路径。</p>
             <div class="ui divider"></div>
-            <button id="download" class="ui black icon button" v-bind:class="{disabled: generateErrors.length > 0}"><i class="download icon"></i> 下载</button>
+            <button id="download" class="ui black icon button" v-bind:class="{disabled: generateErrors.length > 0}">
+                <i class="download icon"></i> 下载
+            </button>
             <div class="ui existing segment">
                 <template v-for="line in generated.split('\n')">{{line}}<br></template>
             </div>
