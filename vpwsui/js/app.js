@@ -458,7 +458,7 @@ function pageMain() {
       if (!_validPortNumber(data.pac.listen)) {
         data.generateErrors.push('pac服务监听端口错误');
       }
-      text += 'agent.gateway.pac.address ' + data.pac.listen + '\n';
+      text += 'agent.gateway.pac.listen ' + data.pac.listen + '\n';
     }
     if (data.gateway.enabled) {
       text += 'agent.gateway on\n';
