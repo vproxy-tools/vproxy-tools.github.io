@@ -587,6 +587,11 @@ function pageMain() {
         data.generateErrors.push('指定了https中继规则，但是自动证书签发未启用');
       }
     }
+    if (!data.socks5.enabled && !data.httpconnect.enabled) {
+      if (data.pac.enabled) {
+        data.generateErrors.push('pac服务已启用，但是socks5和http-connect均未启用');
+      }
+    }
     // check ports
     var ports = [];
     var names = [];
