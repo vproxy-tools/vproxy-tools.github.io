@@ -117,7 +117,7 @@ function pageMain() {
             port: 443,
           },
         ],
-        lastProxyRuleIndex: 2,
+        lastProxyRuleIndex: 3,
         proxyRuleList: [
           {
             index: 0,
@@ -142,6 +142,16 @@ function pageMain() {
           {
             index: 2,
             rule: '/.*google.*/',
+            white: {
+              events: {
+                mouseover: false,
+              },
+              enabled: false,
+            },
+          },
+          {
+            index: 3,
+            rule: '[https://gitee.com/wkgcass/gfwlist/raw/master/gfwlist.txt]',
             white: {
               events: {
                 mouseover: false,
