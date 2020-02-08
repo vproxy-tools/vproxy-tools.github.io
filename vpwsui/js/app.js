@@ -551,7 +551,6 @@ function pageMain() {
         text += '    ' + rule.rule + '\n';
       }
       text += 'no-proxy.domain.list.end\n';
-      text += '\n';
       if (!data.dns.enabled) {
         if (group.dnsRuleList.length !== 0) {
           data.generateErrors.push('指定了DNS代理规则，但是dns未启用: ' + i);
