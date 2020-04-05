@@ -23,8 +23,9 @@
         <div class="item clickable" v-bind:class="{active: page == 'server'}" v-on:click="page = 'server'">
             服务器配置
         </div>
-        <div class="item clickable" v-bind:class="{active: page == 'relay'}" v-on:click="page = 'relay'">
-            中继配置
+        <div class="item clickable" v-bind:class="{active: page == 'https-sni-erasure'}"
+             v-on:click="page = 'https-sni-erasure'">
+            SNI消除配置
         </div>
         <div class="item clickable" v-bind:class="{active: page == 'generate'}" v-on:click="doGenerate()">
             生成配置文件
@@ -245,41 +246,41 @@ openssl req -new -x509 -extensions v3_ca -days 36500 -key ca.key -out ca.crt -co
                          v-on:click="handleCheckboxClick(directrelay)"
                          v-on:mouseleave="handleCheckboxMouseLeaveEvent(directrelay)"
                          v-on:mouseenter="handleCheckboxMouseEnterEvent(directrelay)">
-                        <label>启用https直接中继（将中继规则匹配的域名解析到agent，流量不经过远端服务器，并且去除SNI）</label>
+                        <label>启用直接中继（通过DNS将域名解析到agent上，应用程序会直接请求agent，不需要应用程序适配任何代理协议）</label>
                         <input type="checkbox" class="hidden">
                     </div>
                 </div>
                 <div v-show="directrelay.enabled">
                     <div style="margin-top: 5px;">
                         <div class="inline fields">
-                            <div id="proxyhttpsrelay-checkbox" class="ui toggle checkbox"
-                                 v-on:click="handleCheckboxClick(proxyhttpsrelay)"
-                                 v-on:mouseleave="handleCheckboxMouseLeaveEvent(proxyhttpsrelay)"
-                                 v-on:mouseenter="handleCheckboxMouseEnterEvent(proxyhttpsrelay)">
-                                <label>启用https直接中继代理（将代理规则匹配的域名解析到agent，并将流量代理到远端服务器）</label>
+                            <div id="directrelayadvanced-checkbox" class="ui toggle checkbox"
+                                 v-on:click="handleCheckboxClick(directrelayadvanced)"
+                                 v-on:mouseleave="handleCheckboxMouseLeaveEvent(directrelayadvanced)"
+                                 v-on:mouseenter="handleCheckboxMouseEnterEvent(directrelayadvanced)">
+                                <label>启用直接中继的高级功能（仅Linux操作系统可使用）</label>
                                 <input type="checkbox" class="hidden">
-                            </div>
-                            <div class="field" v-show="proxyhttpsrelay.enabled">
-                                &nbsp;
-                                <i class="check icon"></i>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-            <div class="ui divider"></div>
-            <div>
-                <div class="inline fields">
-                    <div id="proxyrelay-checkbox" class="ui toggle checkbox"
-                         v-on:click="handleCheckboxClick(proxyrelay)"
-                         v-on:mouseleave="handleCheckboxMouseLeaveEvent(proxyrelay)"
-                         v-on:mouseenter="handleCheckboxMouseEnterEvent(proxyrelay)">
-                        <label>启用https代理中继（对于socks5、httpconnect、ss等代理服务的代理请求，如果匹配中继规则，则流量不经过远端服务器，并且去除SNI）</label>
-                        <input type="checkbox" class="hidden">
-                    </div>
-                    <div class="field" v-show="proxyrelay.enabled">
-                        &nbsp;
-                        <i class="check icon"></i>
+                    <div v-show="directrelayadvanced.enabled">
+                        <div style="margin-top: 5px;">
+                            <div class="ui form">
+                                <div class="inline fields">
+                                    <div class="field">
+                                        <label>用于绑定域名的网段</label>
+                                        <input type="text" placeholder="网段" v-model="directrelayadvanced.network">
+                                    </div>
+                                    <div class="field">
+                                        <label>IP_TRANSPARENT socket 监听地址</label>
+                                        <input type="text" placeholder="监听地址" v-model="directrelayadvanced.listen">
+                                    </div>
+                                    <div class="field">
+                                        <label>IP绑定超时时间</label>
+                                        <input type="text" placeholder="超时时间" v-model="directrelayadvanced.timeout">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -450,22 +451,22 @@ openssl req -new -x509 -extensions v3_ca -days 36500 -key ca.key -out ca.crt -co
             <button class="ui green button" v-on:click="addGroup()">添加新的服务器组</button>
         </div>
     </div>
-    <div class="ui bottom attached tab segment" v-bind:class="{active: page == 'relay'}">
+    <div class="ui bottom attached tab segment" v-bind:class="{active: page == 'https-sni-erasure'}">
         <div class="ui form">
             <table class="ui celled table">
                 <thead>
                 <tr>
-                    <th class="fifteen wide">https中继规则（可用于消除SNI）</th>
+                    <th class="fifteen wide">https-sni-erasure 通过清除SNI来避免防火墙检查，流量不会经过代理服务器</th>
                     <th class="one wide">操作</th>
                 </tr>
                 </thead>
-                <tr v-for="relayRule in directRelayRuleList">
+                <tr v-for="hseRule in httpsSniErasureRuleList">
                     <td data-label="rule">
-                        <input type="text" name="rule" placeholder="https中继规则" v-model="relayRule.rule">
+                        <input type="text" name="rule" placeholder="https-sni-erasure规则" v-model="hseRule.rule">
                     </td>
                     <td data-label="operation">
                         <button class="ui mini red basic icon button"
-                                v-on:click="deleteDirectRelayRule(relayRule.index)">
+                                v-on:click="deleteHttpsSniErasureRule(hseRule.index)">
                             <i class="trash icon"></i>
                         </button>
                     </td>
@@ -473,7 +474,7 @@ openssl req -new -x509 -extensions v3_ca -days 36500 -key ca.key -out ca.crt -co
                 <tr>
                     <td></td>
                     <td>
-                        <button class="ui mini green basic icon button" v-on:click="addDirectRelayRule()">
+                        <button class="ui mini green basic icon button" v-on:click="addHttpsSniErasureRule()">
                             <i class="add icon"></i>
                         </button>
                     </td>

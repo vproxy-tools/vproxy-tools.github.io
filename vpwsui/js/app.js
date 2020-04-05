@@ -8,8 +8,7 @@ function pageMain() {
     'gateway',
     'autosign',
     'directrelay',
-    'proxyrelay',
-    'proxyhttpsrelay',
+    'directrelayadvanced',
     'hc',
     'certauth',
   ];
@@ -71,17 +70,14 @@ function pageMain() {
       },
       enabled: false,
     },
-    proxyrelay: {
+    directrelayadvanced: {
       events: {
         mouseover: false,
       },
       enabled: false,
-    },
-    proxyhttpsrelay: {
-      events: {
-        mouseover: false,
-      },
-      enabled: false,
+      network: '100.96.0.0/11',
+      listen: '127.0.0.1:8888',
+      timeout: 0,
     },
     serverUser: '',
     serverPass: '',
@@ -164,8 +160,8 @@ function pageMain() {
         dnsRuleList: [],
       },
     ],
-    lastDirectRelayRuleIndex: -1,
-    directRelayRuleList: [],
+    lastHttpsSniErasureRuleIndex: -1,
+    httpsSniErasureRuleList: [],
     generateErrors: [],
     generated: '',
     running: false,
@@ -189,8 +185,8 @@ function pageMain() {
       addRule: addRule,
       deleteDnsRule: deleteDnsRule,
       addDnsRule: addDnsRule,
-      deleteDirectRelayRule: deleteDirectRelayRule,
-      addDirectRelayRule: addDirectRelayRule,
+      deleteHttpsSniErasureRule: deleteHttpsSniErasureRule,
+      addHttpsSniErasureRule: addHttpsSniErasureRule,
       doGenerate: doGenerate,
       run: run,
       stop: stop,
@@ -397,23 +393,23 @@ function pageMain() {
     });
   }
 
-  function deleteDirectRelayRule(ruleIndex) {
-    console.log('delete direct relay rule ' + ruleIndex);
+  function deleteHttpsSniErasureRule(ruleIndex) {
+    console.log('delete https-sni-erasure rule ' + ruleIndex);
 
-    for (var i = 0; i < data.directRelayRuleList.length; ++i) {
-      var rule = data.directRelayRuleList[i];
+    for (var i = 0; i < data.httpsSniErasureRuleList.length; ++i) {
+      var rule = data.httpsSniErasureRuleList[i];
       if (rule.index === ruleIndex) {
-        data.directRelayRuleList.splice(i, 1);
+        data.httpsSniErasureRuleList.splice(i, 1);
         return;
       }
     }
   }
 
-  function addDirectRelayRule() {
-    console.log('add direct relay rule');
+  function addHttpsSniErasureRule() {
+    console.log('add https-sni-erasure rule');
 
-    var index = ++data.lastDirectRelayRuleIndex;
-    data.directRelayRuleList.push({
+    var index = ++data.lastHttpsSniErasureRuleIndex;
+    data.httpsSniErasureRuleList.push({
       index: index,
       rule: '',
     });
@@ -486,9 +482,20 @@ function pageMain() {
     }
     if (data.directrelay.enabled) {
       text += 'agent.direct-relay on\n';
-    }
-    if (data.proxyrelay.enabled) {
-      text += 'agent.proxy-relay on\n';
+      if (data.directrelayadvanced.enabled) {
+        if (isNaN(parseInt(data.directrelayadvanced.timeout))) {
+          data.generateErrors.push('直接中继高级功能的超时时间应当是数字');
+        }
+        if (data.directrelayadvanced.network === "") {
+          data.generateErrors.push('直接中继高级功能的网段未填写');
+        }
+        if (data.directrelayadvanced.listen === "") {
+          data.generateErrors.push('直接中继高级功能的监听地址未填写');
+        }
+        text += 'agent.direct-relay.network ' + data.directrelayadvanced.network + '\n';
+        text += 'agent.direct-relay.listen' + data.directrelayadvanced.listen + '\n';
+        text += 'agent.direct-relay.timeout ' + data.directrelayadvanced.timeout + '\n';
+      }
     }
     text += '\n';
     if (!data.serverUser) {
@@ -567,33 +574,23 @@ function pageMain() {
       text += 'proxy.resolve.list.end\n';
       text += '\n';
     }
-    text += 'https-relay.domain.list.start\n';
-    for (var i = 0; i < data.directRelayRuleList.length; ++i) {
-      var rule = data.directRelayRuleList[i];
+    text += 'https-sni-erasure.domain.list.start\n';
+    for (var i = 0; i < data.httpsSniErasureRuleList.length; ++i) {
+      var rule = data.httpsSniErasureRuleList[i];
       if (!rule.rule) {
-        data.generateErrors.push('https中继规则未填写: ' + i);
+        data.generateErrors.push('SNI消除规则未填写: ' + i);
       }
       text += '    ' + rule.rule + '\n';
     }
-    text += 'https-relay.domain.list.end\n';
-    text += '\n';
-    if (data.directrelay.enabled && data.proxyhttpsrelay.enabled) {
-      text += 'proxy.https-relay.domain.merge on\n';
-    }
+    text += 'https-sni-erasure.domain.list.end\n';
     text += '\n';
 
     data.generated = text;
 
     // do some final check
     if (!data.autosign.enabled) {
-      if (data.directrelay.enabled) {
-        data.generateErrors.push('https直接中继已启用，但是自动证书签发未启用');
-      }
-      if (data.proxyrelay.enabled) {
-        data.generateErrors.push('https代理中继已启用，但是自动证书签发未启用');
-      }
-      if (data.directRelayRuleList.length !== 0) {
-        data.generateErrors.push('指定了https中继规则，但是自动证书签发未启用');
+      if (data.httpsSniErasureRuleList.length !== 0) {
+        data.generateErrors.push('指定了SNI消除规则，但是自动证书签发未启用');
       }
     }
     if (!data.socks5.enabled && !data.httpconnect.enabled) {
