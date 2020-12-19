@@ -478,7 +478,7 @@ function pageMain() {
       if (!data.autosign.cakey) {
         data.generateErrors.push('私钥路径未填写');
       }
-      text += 'agent.auto-sign ' + data.autosign.cacert + ' ' + data.autosign.cakey + '\n';
+      text += 'agent.https-sni-erasure.cert-key.auto-sign ' + data.autosign.cacert + ' ' + data.autosign.cakey + '\n';
     }
     if (data.directrelay.enabled) {
       text += 'agent.direct-relay on\n';
@@ -492,9 +492,9 @@ function pageMain() {
         if (data.directrelayadvanced.listen === "") {
           data.generateErrors.push('直接中继高级功能的监听地址未填写');
         }
-        text += 'agent.direct-relay.network ' + data.directrelayadvanced.network + '\n';
-        text += 'agent.direct-relay.listen' + data.directrelayadvanced.listen + '\n';
-        text += 'agent.direct-relay.timeout ' + data.directrelayadvanced.timeout + '\n';
+        text += 'agent.direct-relay.ip-range ' + data.directrelayadvanced.network + '\n';
+        text += 'agent.direct-relay.listen ' + data.directrelayadvanced.listen + '\n';
+        text += 'agent.direct-relay.ip-bond-timeout ' + data.directrelayadvanced.timeout + '\n';
       }
     }
     text += '\n';
