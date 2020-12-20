@@ -33,8 +33,9 @@ function pageMain() {
   }
 
   function askPermission(cb) {
-    if (!navigator || !navigator.permissions || !navigator.query) {
-      return cb(true); // try anyway
+    if (!navigator || !navigator.permissions || !navigator.permissions.query) {
+      console.log("navigator.permission.query not supported");
+      return cb(false);
     }
     navigator.permissions.query({
       name: 'clipboard-read',
@@ -67,8 +68,9 @@ function pageMain() {
     pageMain0(getDefaultData());
   }
 
-  askPermission(function(granted) {
-    if (granted) {
+  function useClipboard() {
+    askPermission(function() {
+      // try regardless of the permission check
       getFromClipboard(text => {
         let data = getDataFromClipboard(text);
         if (!data) {
@@ -77,10 +79,36 @@ function pageMain() {
 
         pageMain0(data);
       });
+    });
+  }
+
+  function getQueryString(name) {
+    var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
+    var r = window.location.search.substr(1).match(reg);
+    if (r != null) {
+      return unescape(r[2]);
+    }
+    return null;
+  }
+
+  function main() {
+    var useClipboardQuery = getQueryString("useClipboard");
+    if (useClipboardQuery === 'true') {
+      askPermission(granted => {
+        if (granted) {
+          useClipboard();
+        } else {
+          document.getElementById("paste-button").addEventListener("click", function(/*e*/) {
+            useClipboard();
+          });
+        }
+      });
     } else {
       runWithDefault();
     }
-  });
+  }
+
+  main();
 
   function getDefaultData() {
     return {
