@@ -6,4 +6,9 @@ generate:
 	cp -r public/* ../articles
 
 .PHONY: clean
+clean:
 	hexo clean
+
+.PHONY: serv
+serv:
+	hexo server
