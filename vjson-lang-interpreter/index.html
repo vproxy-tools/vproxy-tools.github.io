@@ -22,6 +22,7 @@
     <div id="buttons">
         <button id="run-btn" style="width: 80px; margin-left: 1px;">Run</button>
         <button id="clear-btn" style="width: 120px">Clear Output</button>
+        <button id="eval-btn" style="width: 80px">Evaluate</button>
         <button id="json-btn" style="width: 180px;">Print JSON Representation</button>
         <button id="ast-btn" style="width: 100px;">Print AST</button>
         <button id="run-print-mem-btn" style="width: 140px">Run and Print Mem</button>
@@ -38,6 +39,7 @@
 <script src="ace.min.js" type="text/javascript" charset="utf-8"></script>
 <script src="mode-javascript.min.js" type="text/javascript" charset="utf-8"></script>
 <script src="custom-select.js"></script>
+<script src="base64.js"></script>
 <script>
     var PROG_HELLO = "{\n" +
         "std.console.log: [('Hello vjson-lang')]\n" +
@@ -202,7 +204,17 @@
     editor.setShowPrintMargin(false)
     var JavaScriptMode = ace.require("ace/mode/javascript").Mode;
     editor.session.setMode(new JavaScriptMode());
-    editor.getSession().setValue(PROG_FIB);
+    // try to read program from url
+    var prog = new URLSearchParams(window.location.search).get('prog')
+    if (prog) {
+        try {
+            editor.getSession().setValue(UTF8ArrToStr(base64DecToArr(prog)))
+        } catch (e) {
+            editor.getSession().setValue("unable to read program from url:\n" + prog + "\nerror=" + e + "\n")
+        }
+    } else {
+        editor.getSession().setValue(PROG_FIB);
+    }
 
     var aceConsole = ace.edit("console");
     aceConsole.setFontSize(16);
@@ -231,6 +243,10 @@
     });
     document.getElementById("clear-btn").addEventListener("click", function () {
         aceConsole.getSession().setValue("\n");
+    });
+    document.getElementById("eval-btn").addEventListener("click", function () {
+        var code = editor.getSession().getValue();
+        online_vjson_lang_interpreter.eval(code);
     });
     document.getElementById("json-btn").addEventListener("click", function () {
         var code = editor.getSession().getValue();
