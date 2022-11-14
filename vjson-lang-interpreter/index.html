@@ -42,7 +42,7 @@
          style="position:absolute; right: 0; top: 0; z-index: 1000;">
 </a>
 </body>
-<script src="online_vjson_lang_interpreter.js"></script>
+<script src="workerEntry.js"></script>
 <script src="ace.min.js" type="text/javascript" charset="utf-8"></script>
 <script src="mode-javascript.min.js" type="text/javascript" charset="utf-8"></script>
 <script src="custom-select.js"></script>
@@ -463,15 +463,6 @@
         aceConsole.renderer.scrollToLine(Number.POSITIVE_INFINITY);
     });
 
-    online_vjson_lang_interpreter.registerOutput(function (line) {
-        var newLines = aceConsole.getSession().getValue() + line + '\n';
-        aceConsole.getSession().setValue(newLines);
-    });
-    online_vjson_lang_interpreter.registerCursorJump(function (line, col) {
-        editor.gotoLine(line, col - 1, true);
-        editor.focus();
-    });
-
     document.getElementById("share-btn").addEventListener("click", function () {
         var code = editor.getSession().getValue();
         var base64 = base64EncArr(pako.gzip(code, {level: 9})).split('\r\n').join('');
@@ -482,26 +473,26 @@
     });
     document.getElementById("run-btn").addEventListener("click", function () {
         var code = editor.getSession().getValue();
-        online_vjson_lang_interpreter.run(code, false);
+        workerRun(code, false);
     });
     document.getElementById("clear-btn").addEventListener("click", function () {
         aceConsole.getSession().setValue("\n");
     });
     document.getElementById("eval-btn").addEventListener("click", function () {
         var code = editor.getSession().getValue();
-        online_vjson_lang_interpreter.eval(code);
+        workerEval(code);
     });
     document.getElementById("json-btn").addEventListener("click", function () {
         var code = editor.getSession().getValue();
-        online_vjson_lang_interpreter.json(code);
+        workerJson(code);
     });
     document.getElementById("ast-btn").addEventListener("click", function () {
         var code = editor.getSession().getValue();
-        online_vjson_lang_interpreter.ast(code);
+        workerAst(code);
     });
     document.getElementById("run-print-mem-btn").addEventListener("click", function () {
         var code = editor.getSession().getValue();
-        online_vjson_lang_interpreter.run(code, true);
+        workerRun(code, true);
     });
     applyCustomSelect(function (title) {
         var text = progs[title];
